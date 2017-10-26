@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "runtime"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,17 +9,17 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
-
 	"github.com/beevik/etree"
 )
 
 func main() {
 	search := url.QueryEscape(strings.Join(os.Args[1:], " "))
-	resp, err := http.Get(fmt.Sprintf(
-            "https://dict.leo.org/dictQuery/m-vocab/ende/query.xml?" +
-            "tolerMode=nof&lp=ende&lang=de&rmWords=off&rmSearch=on&searchLoc=0"+
-            "&resultOrder=basic&multiwordShowSingle=on&search=%s", search))
+	url_fmt := "https://dict.leo.org/dictQuery/m-vocab/ende/query.xml?" +
+		"tolerMode=nof&lp=ende&lang=de&rmWords=off&rmSearch=on&searchLoc=0" +
+		"&resultOrder=basic&multiwordShowSingle=on&search=%s"
+	resp, err := http.Get(fmt.Sprintf(url_fmt, search))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,11 +35,12 @@ func main() {
 	}
 	root := doc.SelectElement("xml")
 
-	/*
-	   stdin := os.Stdout
-	   if runtime.GOOS != "windows" {
-	*/
-	cmd := exec.Command("less", "-FX")
+	var cmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("more")
+	} else {
+		cmd = exec.Command("less", "-FX")
+	}
 	r, stdin := io.Pipe()
 	cmd.Stdin = r
 	cmd.Stdout = os.Stdout
@@ -50,9 +50,6 @@ func main() {
 		defer close(c)
 		cmd.Run()
 	}()
-	/*
-	   }
-	*/
 
 	for _, entry := range root.FindElements("//entry") {
 		de := entry.FindElement("//side[@lang='de']")
@@ -84,16 +81,12 @@ func main() {
 
 		_, max := MinMax(len(dewords), len(enwords))
 		for i := 0; i < max; i++ {
-			fmt.Fprintf(stdin, "%-35s %-35s\n", Geti(dewords, i), Geti(enwords, i))
+			fmt.Fprintf(
+				stdin, "%-35s %-35s\n",
+				Geti(dewords, i), Geti(enwords, i))
 		}
 	}
 
-	/*
-	   if runtime.GOOS != "windows" {
-	*/
 	stdin.Close()
 	<-c
-	/*
-	   }
-	*/
 }
