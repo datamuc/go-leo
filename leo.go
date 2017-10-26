@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/beevik/etree"
 	"io"
 	"io/ioutil"
 	"log"
@@ -11,7 +12,6 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-	"github.com/beevik/etree"
 )
 
 func main() {
@@ -51,32 +51,33 @@ func main() {
 		cmd.Run()
 	}()
 
+	MinMax := func(a int, b int) (int, int) {
+		if a > b {
+			return b, a
+		} else {
+			return a, b
+		}
+	}
+
+	Geti := func(s []string, i int) string {
+		if i >= len(s) {
+			return ""
+		} else {
+			return s[i]
+		}
+	}
+
 	for _, entry := range root.FindElements("//entry") {
 		de := entry.FindElement("//side[@lang='de']")
 		en := entry.FindElement("//side[@lang='en']")
 		dewords := make([]string, 0)
 		enwords := make([]string, 0)
+
 		for _, w := range de.FindElements(".//words/word") {
 			dewords = append(dewords, w.Text())
 		}
 		for _, w := range en.FindElements(".//words/word") {
 			enwords = append(enwords, w.Text())
-		}
-
-		MinMax := func(a int, b int) (int, int) {
-			if a > b {
-				return b, a
-			} else {
-				return a, b
-			}
-		}
-
-		Geti := func(s []string, i int) string {
-			if i >= len(s) {
-				return ""
-			} else {
-				return s[i]
-			}
 		}
 
 		_, max := MinMax(len(dewords), len(enwords))
