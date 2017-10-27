@@ -91,7 +91,7 @@ func main() {
 		}
 	}
 
-	fmt.Fprintf(stdin, "%s\n", table)
+	fmt.Fprintln(stdin, table)
 
 	stdin.Close()
 	<-c
