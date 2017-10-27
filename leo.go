@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/beevik/etree"
+	"github.com/gosuri/uitable"
 	"io"
 	"io/ioutil"
 	"log"
@@ -67,6 +68,10 @@ func main() {
 		}
 	}
 
+	table := uitable.New()
+	table.MaxColWidth = 35
+	table.Wrap = true
+
 	for _, entry := range root.FindElements("//entry") {
 		de := entry.FindElement("//side[@lang='de']")
 		en := entry.FindElement("//side[@lang='en']")
@@ -82,11 +87,11 @@ func main() {
 
 		_, max := MinMax(len(dewords), len(enwords))
 		for i := 0; i < max; i++ {
-			fmt.Fprintf(
-				stdin, "%-35s %-35s\n",
-				Geti(dewords, i), Geti(enwords, i))
+			table.AddRow("|"+Geti(dewords, i), Geti(enwords, i))
 		}
 	}
+
+	fmt.Println(table)
 
 	stdin.Close()
 	<-c
