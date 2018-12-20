@@ -16,6 +16,9 @@ import (
 )
 
 func main() {
+        if(len(os.Args) < 2) {
+            log.Fatal("no argument given");
+        }
 	search := url.QueryEscape(strings.Join(os.Args[1:], " "))
 	url_fmt := "https://dict.leo.org/dictQuery/m-vocab/ende/query.xml?" +
 		"tolerMode=nof&lp=ende&lang=de&rmWords=off&rmSearch=on&searchLoc=0" +
@@ -40,7 +43,11 @@ func main() {
 	if runtime.GOOS == "windows" {
 		cmd = exec.Command("more")
 	} else {
-		cmd = exec.Command("less", "-FX")
+                if runtime.GOARCH == "arm" {
+		    cmd = exec.Command("less")
+                } else {
+		    cmd = exec.Command("less", "-FX")
+                }
 	}
 	r, stdin := io.Pipe()
 	cmd.Stdin = r
